@@ -2,6 +2,8 @@
 
 interface HomeProps {
   betTotal: number;
+  guessTotal: number;
+  userTotal: number;
 }
 
 import Image from "next/image";
@@ -10,8 +12,9 @@ import phonePreviewAppImage from "../assets/phones-app-preview.png";
 import logoNlwImage from "../assets/logo.svg";
 import userAvatarsImage from "../assets/users-avatars-example.png";
 import iconCheckImage from "../assets/icon-check.svg";
+import { api } from "../lib/axios";
 
-export default function Home({ betTotal }: HomeProps) {
+export default function Home({ betTotal, guessTotal, userTotal }: HomeProps) {
   return (
     <div className="max-w-[1124px] h-screen mx-auto grid grid-cols-2 gap-28 items-center">
       <main>
@@ -24,8 +27,10 @@ export default function Home({ betTotal }: HomeProps) {
         <div className="mt-10 flex items-center gap-2">
           <Image src={userAvatarsImage} alt="" />
           <strong className="text-gray-100 text-xl">
-            <span className="text-ignite-500">+12.592</span> pessoas já estão
-            usando
+            <span className="text-ignite-500">
+              +{userTotal ? userTotal : 0}
+            </span>{" "}
+            pessoas já estão usando
           </strong>
         </div>
 
@@ -65,7 +70,9 @@ export default function Home({ betTotal }: HomeProps) {
           <div className="flex items-center gap-6">
             <Image src={iconCheckImage} alt="" />
             <div className="flex flex-col">
-              <span className="font-bold text-2xl">+192.847</span>
+              <span className="font-bold text-2xl">
+                +{guessTotal ? guessTotal : 0}
+              </span>
               <span>Palpites enviados</span>
             </div>
           </div>
@@ -80,12 +87,18 @@ export default function Home({ betTotal }: HomeProps) {
 }
 
 export const getServerSideProps = async () => {
-  const response = await fetch("http://localhost:3333/bet/total");
-  const data = await response.json();
+  const [betTotalResponse, guessTotalResponse, userTotalResponse] =
+    await Promise.all([
+      api.get("/bet/total"),
+      api.get("/guess/total"),
+      api.get("/user/total"),
+    ]);
 
   return {
     props: {
-      betTotal: data.total,
+      betTotal: betTotalResponse.data.total,
+      guessTotal: guessTotalResponse.data.total,
+      userTotal: userTotalResponse.data.total,
     },
   };
 };
