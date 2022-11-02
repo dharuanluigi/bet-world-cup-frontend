@@ -7,6 +7,7 @@ interface HomeProps {
 }
 
 import Image from "next/image";
+import { GetStaticProps } from "next";
 
 import phonePreviewAppImage from "../assets/phones-app-preview.png";
 import logoNlwImage from "../assets/logo.svg";
@@ -118,7 +119,7 @@ export default function Home({ betTotal, guessTotal, userTotal }: HomeProps) {
   );
 }
 
-export const getStaticProps = async () => {
+export const getStaticProps: GetStaticProps<HomeProps> = async () => {
   const [betTotalResponse, guessTotalResponse, userTotalResponse] =
     await Promise.all([
       api.get("/bet/total"),
@@ -132,6 +133,6 @@ export const getStaticProps = async () => {
       guessTotal: guessTotalResponse.data.total,
       userTotal: userTotalResponse.data.total,
     },
-    revalidate: 30,
+    revalidate: 10,
   };
 };
