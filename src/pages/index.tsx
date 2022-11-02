@@ -13,8 +13,38 @@ import logoNlwImage from "../assets/logo.svg";
 import userAvatarsImage from "../assets/users-avatars-example.png";
 import iconCheckImage from "../assets/icon-check.svg";
 import { api } from "../lib/axios";
+import { FormEvent, useState } from "react";
 
 export default function Home({ betTotal, guessTotal, userTotal }: HomeProps) {
+  const [betTitle, setBetTitle] = useState("");
+
+  async function createBet(event: FormEvent) {
+    event.preventDefault();
+
+    try {
+      const createBetResponse = await api.post("/bet", {
+        title: betTitle,
+      });
+
+      const { code } = createBetResponse.data;
+
+      await navigator.clipboard.writeText(code);
+
+      alert(
+        "Bolão criado com sucesso, o código foi copiado para área de tranferência!"
+      );
+
+      setBetTitle("");
+    } catch (err) {
+      console.log(err);
+      alert("Houve um erro ao criar o bolão, tente novamente.");
+    }
+  }
+
+  function handleBetTitle(event: any) {
+    setBetTitle(event.target.value);
+  }
+
   return (
     <div className="max-w-[1124px] h-screen mx-auto grid grid-cols-2 gap-28 items-center">
       <main>
@@ -34,12 +64,14 @@ export default function Home({ betTotal, guessTotal, userTotal }: HomeProps) {
           </strong>
         </div>
 
-        <form className="mt-10 flex gap-2">
+        <form onSubmit={createBet} className="mt-10 flex gap-2">
           <input
             type="text"
             required
             placeholder="Qual nome do seu bolão?"
-            className="flex-1 px-6 py-4 rounded bg-gray-800 border border-gray-600 text-sm"
+            className="flex-1 px-6 py-4 rounded bg-gray-800 border border-gray-600 text-sm text-gray-100"
+            onChange={handleBetTitle}
+            value={betTitle}
           />
           <button
             type="submit"
@@ -86,7 +118,7 @@ export default function Home({ betTotal, guessTotal, userTotal }: HomeProps) {
   );
 }
 
-export const getServerSideProps = async () => {
+export const getStaticProps = async () => {
   const [betTotalResponse, guessTotalResponse, userTotalResponse] =
     await Promise.all([
       api.get("/bet/total"),
@@ -100,5 +132,6 @@ export const getServerSideProps = async () => {
       guessTotal: guessTotalResponse.data.total,
       userTotal: userTotalResponse.data.total,
     },
+    revalidate: 30,
   };
 };
